@@ -12,10 +12,10 @@
 
 # Set up logging
 $NOW = Get-Date -Format "yyyyMMdd-hhmmss"
-$LogPath = "$ENV:TEMP\HarmonicSecurity-UserScript-$NOW.log"
+$LogPath = "$ENV:PROGRAMDATA\Harmonic Security\HarmonicSecurity-UserScript-$NOW.log"
 
 # Set up temporary file
-$tempFilePath = "$ENV:TEMP\HarmonicSecurity-UPN.txt"
+$tempFilePath = "$ENV:PROGRAMDATA\Harmonic Security\HarmonicSecurity-UPN.txt"
 
 Start-Transcript -path $LogPath | Out-Null
 

@@ -12,7 +12,7 @@
 
 # Set up logging
 $NOW = Get-Date -Format "yyyyMMdd-hhmmss"
-$LogPath = "$ENV:TEMP\HarmonicSecurity-AdminScript-$NOW.log"
+$LogPath = "$ENV:PROGRAMDATA\Harmonic Security\HarmonicSecurity-AdminScript-$NOW.log"
 
 # Make sure these values are correct
 $company_api_key = "changeme"
@@ -20,7 +20,7 @@ $company_id = "changeme"
 $extension_identifier = "nmgdkbiadhkdekcolccalbcmnmgjeioa" 
 
 # Set up temporary file
-$tempFilePath = "$ENV:TEMP\HarmonicSecurity-UPN.txt"
+$tempFilePath = "$ENV:PROGRAMDATA\Harmonic Security1\HarmonicSecurity-UPN.txt"
 
 Start-Transcript -path $LogPath | Out-Null
 
