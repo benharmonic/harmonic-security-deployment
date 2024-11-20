@@ -171,6 +171,16 @@ function Configure-EdgeExtension {
     }
 }
 
+function Validate-EmailAddress {
+    param (
+        [string]$email
+    )
+
+    $emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+
+    return $email -match $emailRegex
+}
+
 $timeout = 15
 $endTime = (Get-Date).AddMinutes($timeout)
 
@@ -185,6 +195,12 @@ if (-not (Test-Path $tempFilePath)) {
 } else {
     Write-Host "Temporary UPN file found..."
     $UPN = Get-Content $tempFilePath
+
+    if (-not (Validate-EmailAddress $UPN)) {
+        Write-Error -Message "Temporary UPN file contains an invalid email address. This may indicate tampering. Exiting" -Category OperationStopped
+        Stop-Transcript | Out-Null
+        exit -1
+    }
 
     Configure-ChromeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Configure-EdgeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
