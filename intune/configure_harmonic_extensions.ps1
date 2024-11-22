@@ -2,12 +2,11 @@
     .SYNOPSIS
         This script must be run as administrator.
 
-        It collects the user's UserPrincipalName from the file in the %TEMP% directory
-        and configures Harmonic extensions by inserting it and other values into the 
-        Registry.
+        It collects the user's UserPrincipalName and configures Harmonic extensions
+        by inserting it and other values into the Registry.
     .NOTES
         AUTHOR:     ben.smith@harmonic.security
-        LASTEDIT:   2024-11-20
+        LASTEDIT:   2024-11-21
 #>
 
 # Set up logging
@@ -15,14 +14,28 @@ $NOW = Get-Date -Format "yyyyMMdd-hhmmss"
 $LogPath = "$ENV:PROGRAMDATA\Harmonic Security\HarmonicSecurity-AdminScript-$NOW.log"
 
 # Make sure these values are correct
-$company_api_key = "changeme"
-$company_id = "changeme"
+$company_api_key = "changeme123"
+$company_id = "changeme123"
 $extension_identifier = "nmgdkbiadhkdekcolccalbcmnmgjeioa" 
 
-# Set up temporary file
-$tempFilePath = "$ENV:PROGRAMDATA\Harmonic Security1\HarmonicSecurity-UPN.txt"
-
 Start-Transcript -path $LogPath | Out-Null
+
+function Get-UserPrincipalName {
+    $user = (Get-WmiObject -Class Win32_ComputerSystem).UserName
+    $account = New-Object System.Security.Principal.NTAccount($user)
+    $sid = $account.Translate([System.Security.Principal.SecurityIdentifier]).Value
+
+    $registryPath = "HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache\$sid\IdentityCache\$sid"
+    Write-Info -Message "RegistryPath found: $registryPath"
+
+    if (Test-Path $registryPath) {
+        $userInfo = Get-ItemProperty -Path $registryPath
+        Write-Information -Message "UserInfo: $userInfo"
+        return $userInfo.UserName
+    }
+
+    return $null
+}
 
 function Configure-FirefoxExtension {
     Param(
@@ -181,31 +194,30 @@ function Validate-EmailAddress {
     return $email -match $emailRegex
 }
 
+if (-not ([System.Environment]::Is64BitProcess -and [System.Environment]::Is64BitOperatingSystem)) {
+    Write-Error -Message "Unsupported architecture. Please ensure you are running this script in a 64 bit PowerShell host." -Category OperationStopped
+}
+
+$UPN = Get-UserPrincipalName
+
 $timeout = 15
 $endTime = (Get-Date).AddMinutes($timeout)
 
-while (-not (Test-Path $tempFilePath) -and (Get-Date) -lt $endTime) {
+while ($UPN -eq $null -and (Get-Date) -lt $endTime) {
+    Write-Warning -Message "UserPrincipalName not yet found... sleeping..."
     Start-Sleep -Seconds 10
+    $UPN = Get-UserPrincipalName
 }
 
-if (-not (Test-Path $tempFilePath)) {
-    Write-Error -Message "Error configuring Harmonic Security extension - temporary UPN file not found. Contact your Harmonic Security representative for assistance" -Category OperationStopped
+if (-not (Validate-EmailAddress $UPN)) {
+    Write-Error -Message "UserPrincipalName is invalid. Exiting." -Category OperationStopped
     Stop-Transcript | Out-Null
     exit -1
-} else {
-    Write-Host "Temporary UPN file found..."
-    $UPN = Get-Content $tempFilePath
-
-    if (-not (Validate-EmailAddress $UPN)) {
-        Write-Error -Message "Temporary UPN file contains an invalid email address. This may indicate tampering. Exiting" -Category OperationStopped
-        Stop-Transcript | Out-Null
-        exit -1
-    }
-
-    Configure-ChromeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
-    Configure-EdgeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
-    Configure-FirefoxExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
 }
+
+Configure-ChromeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
+Configure-EdgeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
+Configure-FirefoxExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
 
 Stop-Transcript | Out-Null
 exit 0
