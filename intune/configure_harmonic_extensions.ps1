@@ -26,7 +26,7 @@ function Get-UserPrincipalName {
     $sid = $account.Translate([System.Security.Principal.SecurityIdentifier]).Value
 
     $registryPath = "HKLM:\SOFTWARE\Microsoft\IdentityStore\Cache\$sid\IdentityCache\$sid"
-    Write-Info -Message "RegistryPath found: $registryPath"
+    Write-Information -Message "RegistryPath found: $registryPath"
 
     if (Test-Path $registryPath) {
         $userInfo = Get-ItemProperty -Path $registryPath
