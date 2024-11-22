@@ -21,7 +21,7 @@ $extension_identifier = "nmgdkbiadhkdekcolccalbcmnmgjeioa"
 Start-Transcript -path $LogPath | Out-Null
 
 function Get-UserPrincipalName {
-    $user = (Get-WmiObject -Class Win32_ComputerSystem).UserName
+    $user = (Get-CimInstance -ClassName Win32_ComputerSystem).UserName
     $account = New-Object System.Security.Principal.NTAccount($user)
     $sid = $account.Translate([System.Security.Principal.SecurityIdentifier]).Value
 
