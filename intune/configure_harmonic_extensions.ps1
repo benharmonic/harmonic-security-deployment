@@ -11,11 +11,11 @@
 
 # Set up logging
 $NOW = Get-Date -Format "yyyyMMdd-hhmmss"
-$LogPath = "$ENV:PROGRAMDATA\Harmonic Security\HarmonicSecurity-AdminScript-$NOW.log"
+$LogPath = "$ENV:PROGRAMDATA\Harmonic Security\HarmonicSecurity-$NOW.log"
 
 # Make sure these values are correct
-$company_api_key = "changeme123"
-$company_id = "changeme123"
+$company_api_key = "changeme"
+$company_id = "changeme"
 $extension_identifier = "nmgdkbiadhkdekcolccalbcmnmgjeioa" 
 
 Start-Transcript -path $LogPath | Out-Null
