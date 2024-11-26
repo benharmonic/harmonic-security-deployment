@@ -211,7 +211,7 @@ Stop-Transcript | Out-Null
 exit 0
 '@ > $scriptLocation
 
-        $taskAction = New-ScheduledTaskAction -Execute "powershell" -Argument "-noexit -file ""$scriptLocation"""
+        $taskAction = New-ScheduledTaskAction -Execute "powershell" -Argument "-file ""$scriptLocation"""
         $taskTrigger = New-ScheduledTaskTrigger -AtLogOn
         $taskTrigger.Delay = "PT2M"
         $tastSettingsSet = New-ScheduledTaskSettingsSet
