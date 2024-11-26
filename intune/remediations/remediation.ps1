@@ -26,6 +26,8 @@ if (!$taskStatus) {
         $taskUser = New-ScheduledTaskPrincipal -GroupId Users
         
         Register-ScheduledTask -TaskName $taskName -TaskPath "\" -Action $taskAction -Settings $tastSettingsSet -Trigger $taskTrigger -Principal $taskUser
+
+        Start-ScheduledTask -TaskName $taskName
     } catch {
         Write-Output "Error creating $taskName"
     }
@@ -218,6 +220,8 @@ exit 0
         $taskUser = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -RunLevel Highest
         
         Register-ScheduledTask -TaskName $taskName -TaskPath "\" -Action $taskAction -Settings $tastSettingsSet -Trigger $taskTrigger -Principal $taskUser
+
+        Start-ScheduledTask -TaskName $taskName
     } catch {
         Write-Output "Error creating $taskName"
     }
