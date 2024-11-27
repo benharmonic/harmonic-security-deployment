@@ -21,13 +21,10 @@ if (!$taskStatus) {
         Write-Output "$taskName task does not exist. Creating task"
 
         $taskAction = New-ScheduledTaskAction -Execute "cmd" -Argument "/c whoami /upn > ""$upnFileLocation"""
-        $taskTrigger = New-ScheduledTaskTrigger -AtLogOn
         $tastSettingsSet = New-ScheduledTaskSettingsSet
         $taskUser = New-ScheduledTaskPrincipal -GroupId Users
         
-        Register-ScheduledTask -TaskName $taskName -TaskPath "\" -Action $taskAction -Settings $tastSettingsSet -Trigger $taskTrigger -Principal $taskUser
-
-        Start-ScheduledTask -TaskName $taskName
+        Register-ScheduledTask -TaskName $taskName -TaskPath "\" -Action $taskAction -Settings $tastSettingsSet -Principal $taskUser
     } catch {
         Write-Output "Error creating $taskName"
     }
@@ -52,6 +49,16 @@ $NOW = Get-Date -Format "yyyyMMdd-hhmmss"
 $LogPath = "$ENV:PROGRAMDATA\Harmonic Security\HarmonicSecurity-$NOW.log"
 
 Start-Transcript -path $LogPath | Out-Null
+
+# Execute user-space script and wait for it
+$taskName = "HarmonicSecurityExtension-IdentifyUser"
+
+Start-ScheduledTask -TaskName $taskName
+Write-Output "Waiting for user-space task to finish collecting UPN"
+
+while ((Get-ScheduledTask -TaskName $taskName).State -ne "Ready") {
+   Start-Sleep -Seconds 5
+}
 
 function Configure-FirefoxExtension {
     Param(
@@ -207,6 +214,10 @@ if (-not($UPN -eq $null)) {
     Configure-ChromeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Configure-EdgeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Configure-FirefoxExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
+} else {
+    Write-Error -Message "No UserPrincipalName found in UPN.txt" -Category OperationStopped
+    Stop-Transcript | Out-Null
+    exit 1
 }
 
 Stop-Transcript | Out-Null
@@ -215,7 +226,6 @@ exit 0
 
         $taskAction = New-ScheduledTaskAction -Execute "powershell" -Argument "-file ""$scriptLocation"""
         $taskTrigger = New-ScheduledTaskTrigger -AtLogOn
-        $taskTrigger.Delay = "PT2M"
         $tastSettingsSet = New-ScheduledTaskSettingsSet
         $taskUser = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -RunLevel Highest
         
