@@ -14,7 +14,8 @@ Intune's Remediation Scripts automatically configure the tasks if they do not ex
 For security reasons, the PowerShell script run by the `SYSTEM` task is locked down by ACLs and cannot be edited or executed by non-administrators. Its default location is `C:\ProgramData\Harmonic Security\ConfigureRegistry.ps1`.
 
 ## How do I configure these scripts?
-Ensure that you edit lines 44 and 45 of `remediation.ps1` to include the correct API key and customer ID for your Harmonic tenant. If you do not do this, the script will not work.
+> [!WARNING]
+> Ensure that you edit lines 44 and 45 of `remediation.ps1` to include the correct API key and customer ID for your Harmonic tenant. If you do not do this, the script will not work.
 
 Create a new Remediation Script in Intune.
 
