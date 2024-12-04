@@ -226,7 +226,7 @@ Stop-Transcript | Out-Null
 exit 0
 '@ > $scriptLocation
 
-        $taskAction = New-ScheduledTaskAction -Execute "powershell" -Argument "-file ""$scriptLocation"""
+        $taskAction = New-ScheduledTaskAction -Execute "powershell" -Argument "-executionpolicy bypass -file ""$scriptLocation"""
         $taskTrigger = New-ScheduledTaskTrigger -AtLogOn
         $tastSettingsSet = New-ScheduledTaskSettingsSet
         $taskUser = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -RunLevel Highest
