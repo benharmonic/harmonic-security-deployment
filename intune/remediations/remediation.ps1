@@ -11,7 +11,11 @@ if (-not (Test-Path $upnFileLocation)) {
     New-Item -Path $upnFileLocation -ItemType File -Force
 }
 
-$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("Everyone", "Write", "Allow")
+# Use the well-known SID for the "Everyone" group, as it isn't called "Everyone" in non-English
+# installations of Windows
+$sid = New-Object System.Security.Principal.SecurityIdentifier("S-1-1-0")
+$everyone = $sid.Translate([System.Security.Principal.NTAccount])
+$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($everyone, "Write", "Allow")
 $fileSecurity = Get-Acl $upnFileLocation
 $fileSecurity.AddAccessRule($accessRule)
 Set-Acl -Path $upnFileLocation -AclObject $fileSecurity
@@ -22,7 +26,11 @@ if (!$taskStatus) {
 
         $taskAction = New-ScheduledTaskAction -Execute "cmd" -Argument "/c whoami /upn > ""$upnFileLocation"""
         $tastSettingsSet = New-ScheduledTaskSettingsSet
-        $taskUser = New-ScheduledTaskPrincipal -GroupId Users
+        
+        # Use the well-known SID for the "Users" group, as it isn't called "Users" in non-English
+        # installations of Windows
+        $usersSID = "S-1-5-32-545"
+        $taskUser = New-ScheduledTaskPrincipal -GroupId $usersSID
         
         Register-ScheduledTask -TaskName $taskName -TaskPath "\" -Action $taskAction -Settings $tastSettingsSet -Principal $taskUser
     } catch {
@@ -207,6 +215,7 @@ function Configure-EdgeExtension {
     }
 }
 
+
 $upnFileLocation = "C:\ProgramData\Harmonic Security\UPN.txt"
 $UPN = Get-Content $upnFileLocation
 
@@ -238,3 +247,9 @@ exit 0
         Write-Output "Error creating $taskName"
     }
 }
+
+# Finally, add a version number in case the scripts need to be changed
+$versionFileLocation = "C:\ProgramData\Harmonic Security\DeploymentScriptVersion.txt"
+@'
+2.0
+'@ > $versionFileLocation

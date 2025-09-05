@@ -18,6 +18,10 @@ $upnFileLocation = "C:\ProgramData\Harmonic Security\UPN.txt"
 # PowerShell script location
 $scriptLocation = "C:\ProgramData\Harmonic Security\ConfigureRegistry.ps1"
 
+# Deployment scripts version number
+$versionFileLocation = "C:\ProgramData\Harmonic Security\DeploymentScriptVersion.txt"
+$deploymentScriptVersion = "2.0"
+
 if (-not($userTaskStatus)) {
     Write-Output "Not all required items are present. Remediation required"
     Exit 1
@@ -38,5 +42,18 @@ if (-not(Test-Path $scriptLocation)) {
     Exit 1
 }
 
-Write-Output "All required items are present. No action required"
+if (-not(Test-Path $versionFileLocation)) {
+    Write-Output "Not all required items are present. Remediation required"
+    Exit 1
+} else {
+    $fileVersion = Get-Content -Path $versionFileLocation | Out-String
+    $fileVersion = $fileVersion.Trim()
+
+    if (-not($fileVersion -eq $deploymentScriptVersion)) {
+        Write-Output "Deployment scripts have updated. Remediation required"
+        Exit 1
+    }
+}
+
+Write-Output "All required items are present and deployment scripts are up to date. No action required"
 Exit 0
