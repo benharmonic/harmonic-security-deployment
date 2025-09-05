@@ -164,6 +164,56 @@ function Configure-ChromeExtension {
     }
 }
 
+function Configure-IslandExtension {
+    Param(
+        [Parameter()][String] $UPN,
+        [Parameter()][String] $API_Key,
+        [Parameter()][String] $Company_ID
+    )
+    if ($company_api_key -eq "changeme") {
+        Write-Error "You must set the company API key to be able to run this script" -Category OperationStopped
+        Stop-Transcript | Out-Null
+        exit -1
+    } elseif ($company_id -eq "changeme") {
+        Write-Error "You must set the company API key to be able to run this script" -Category OperationStopped
+        Stop-Transcript | Out-Null
+        exit -1
+    }
+
+    $registry_path_island = "HKLM:\SOFTWARE\Policies\Island\3rdparty\extensions\$extension_identifier\policy"
+    $parent_path_island = Split-Path -Path $registry_path_island
+
+    # Create Island policy path for Harmonic Security browser extension if it does not exist
+    if (!(Test-Path $parent_path_island)) {
+        New-Item -Path $parent_path_island -Force -ItemType Directory | Out-Null
+    }
+
+    if (!(Test-Path $parent_path_island\policy)) {
+        New-Item -Path ("$parent_path_island\policy") -Force -ItemType Directory | Out-Null
+    }
+
+    # Set the Registry keys
+    try {
+        Write-Host "Attempting to set companyApiKey for Island..."
+        Set-ItemProperty -Path $registry_path_island -Name "companyApiKey" -Value $API_Key -ErrorAction Stop
+        Write-Host "Attempting to set companyId for Island..."
+        Set-ItemProperty -Path $registry_path_island -Name "companyId" -Value $Company_ID -ErrorAction Stop
+        Write-Host "Attempting to set userEmail for Island..."
+        Set-ItemProperty -Path $registry_path_island -Name "userEmail" -Value $UPN -ErrorAction Stop
+        Write-Host "Attempting to set companyRegion for Island..."
+        Set-ItemProperty -Path $registry_path_island -Name "companyRegion" -Value "eu" -ErrorAction Stop
+
+        if ($?) {
+            Write-Host "Harmonic Security extension configured successfully for Island!"
+        }
+    } catch {
+        Write-Error -Message "Failed to set registry value: $_" -Category OperationStopped
+        $errorDetails = $_.Exception
+        Write-Error -Message "Error details: $errorDetails" -Category OperationStopped
+        exit -1
+    }
+}
+
 function Configure-EdgeExtension {
     Param(
         [Parameter()][String] $UPN,
@@ -223,7 +273,7 @@ if (-not($UPN -eq $null)) {
     Configure-ChromeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Configure-EdgeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Configure-FirefoxExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
-    Configre-IslandExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
+    Configure-IslandExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Stop-Transcript | Out-Null
     exit 0
 } else {
