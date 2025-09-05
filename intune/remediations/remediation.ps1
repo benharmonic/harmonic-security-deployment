@@ -223,6 +223,7 @@ if (-not($UPN -eq $null)) {
     Configure-ChromeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Configure-EdgeExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Configure-FirefoxExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
+    Configre-IslandExtension -UPN $UPN -API_Key $company_api_key -Company_ID $company_id
     Stop-Transcript | Out-Null
     exit 0
 } else {
